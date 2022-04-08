@@ -17,13 +17,7 @@ const tokens = new Map();
 const users = new Map();
 const rounds = 10;
 
-users.set('vasya', {
-    id: uuid.v4(),
-    login: 'vasya',
-    name: 'Vasya',
-    password: bcrypt.hashSync('password', rounds),
-    avatar: 'https://i.pravatar.cc/40'
-});
+users.set('vasya', { id: uuid.v4(), login: 'vasya', name: 'Vasya', password: bcrypt.hashSync('password', rounds), avatar: 'https://i.pravatar.cc/40' });
 
 const news = [
     {
@@ -60,14 +54,13 @@ passport.use(new Strategy((token, callback) => {
 
     return callback(null, user);
 }));
-
 const bearerAuth = passport.authenticate('bearer', { session: false });
-const router = new Router();
 
+const router = new Router();
 router.post('/auth', async (ctx, next) => {
     const { login, password } = JSON.parse(ctx.request.body);
-    const user = users.get(login);
 
+    const user = users.get(login);
     if (user === undefined) {
         ctx.response.status = 400;
         ctx.response.body = { message: 'user not found' };
@@ -87,23 +80,12 @@ router.post('/auth', async (ctx, next) => {
 });
 
 router.use('/private**', bearerAuth);
-
 router.get('/private/me', async (ctx, next) => {
     const { user } = ctx.state;
     ctx.response.body = { id: user.id, login: user.login, name: user.name, avatar: user.avatar };
 });
-
 router.get('/private/news', async (ctx, next) => {
     ctx.response.body = news; 
-});
-router.get('/private/news/:id', async (ctx, next) => {
-    const [item] = news.filter(o => o.id === ctx.params.id);
-    if (item === undefined) {
-        ctx.response.status = 404;
-        ctx.response.body = { message: 'not found' };
-        return;
-    }
-    ctx.response.body = item; 
 });
 
 app.use(router.routes())
